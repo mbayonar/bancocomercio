@@ -21,12 +21,11 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 @Data
 public class Usuario extends AuditoriaEntidad {
 
-    @JsonProperty
-    @Column(name = "contrasena", nullable = false)
-    private String contrasena;
-
     @Column(name = "login", nullable = false)
     private String login;
+
+    @Column(name = "contrasena", nullable = false)
+    private String contrasena;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_persona", nullable = false)

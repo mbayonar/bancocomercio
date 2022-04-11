@@ -43,19 +43,25 @@ public class EjercicioApplication extends SpringBootServletInitializer implement
         TablasH2.crearTablaUsuario(template);
         TablasH2.insertarRegistrosTablaUsuario(template);
     }
-    
-    @EnableWebSecurity
-	@Configuration
-	class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			http.csrf().disable()
-				.addFilterAfter(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
-				.authorizeRequests()
-				.antMatchers(HttpMethod.POST, "/usuario").permitAll()
-				.anyRequest().authenticated();
-		}
-	}
+    @EnableWebSecurity
+    @Configuration
+    class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.csrf().disable()
+                    .addFilterAfter(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                    .authorizeRequests()
+                    .antMatchers(HttpMethod.POST, "/usuario/logeo").permitAll()
+                    .anyRequest().authenticated();
+//            http
+//                    .csrf()
+//                    .disable()
+//                    .authorizeRequests()
+//                    .antMatchers("/**").permitAll()
+//                    .anyRequest().authenticated();
+        }
+    }
 
 }

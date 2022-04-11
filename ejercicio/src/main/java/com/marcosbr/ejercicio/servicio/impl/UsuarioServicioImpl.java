@@ -19,8 +19,10 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -96,17 +98,25 @@ public class UsuarioServicioImpl extends BaseServicioImpl<Usuario, Long> impleme
     }
 
     @Override
-    public RespuestaControlador validarCredenciales(String usuario, String contrasena) {
+    public RespuestaControlador validarCredenciales(String login, String contrasena) {
         RespuestaControlador respuesta = RespuestaControlador.obtenerRespuestaDeError(Constantes.RESPUESTA_CONTROLADOR.MENSAJE_ERROR_AUTENTICACION);
+        System.out.println("");
+        System.out.println("TOKEN: " + this.generarJWToken(login));
+        System.out.println("");
+        
         Criterio filtro = Criterio.forClass(Usuario.class);
-        filtro.add(Restrictions.eq("login", usuario));
-        filtro.add(Restrictions.eq("estado", Boolean.TRUE));
+        filtro.createAlias("persona", "per", JoinType.LEFT_OUTER_JOIN);
+        filtro.add(Restrictions.eq("login", login));
         filtro.add(Restrictions.eq("contrasena", contrasena));
-        filtro.createAlias("persona", "p");
-
-        Usuario usuarioSession = (Usuario) usuarioRepositorio.obtenerConResultSet(filtro, Usuario.class);
+        filtro.add(Restrictions.eq("estado", Boolean.TRUE));
+        
+        System.out.println("");
+        System.out.println("Antes de crear usuario");
+        System.out.println("");
+        Usuario usuarioSession = usuarioRepositorio.obtenerPorCriterio(filtro);
+        System.out.println("Usuario.ID = " + usuarioSession.getId());
         if (SistemaUtil.esNoNulo(usuarioSession)) {
-            usuarioSession.setToken(this.generarJWToken(usuario));
+            usuarioSession.setToken(this.generarJWToken(login));
             respuesta = RespuestaControlador.obtenerRespuestaExitoConData(usuarioSession);
         }
         return respuesta;
@@ -125,4 +135,24 @@ public class UsuarioServicioImpl extends BaseServicioImpl<Usuario, Long> impleme
         return "Bearer " + token;
     }
 
+    @Override
+    public List<Usuario> obtenerTodos() {
+        Criterio filtro = Criterio.forClass(Usuario.class);
+        filtro.createAlias("persona", "per", JoinType.LEFT_OUTER_JOIN);
+        filtro.add(Restrictions.eq("estado", Boolean.TRUE));
+
+        return this.usuarioRepositorio.buscarPorCriteria(filtro);
+    }
+
+    @Override
+    public Usuario obtener(Long usuarioId) {
+        Usuario usuario;
+        Criterio filtro = Criterio.forClass(Usuario.class);
+        filtro.createAlias("persona", "per", JoinType.LEFT_OUTER_JOIN);
+        filtro.add(Restrictions.eq("id", usuarioId));
+        filtro.add(Restrictions.eq("estado", Boolean.TRUE));
+        usuario = usuarioRepositorio.obtenerPorCriterio(filtro);
+
+        return usuario;
+    }
 }
